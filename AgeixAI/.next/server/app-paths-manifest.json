@@ -1,0 +1,19 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/osint/abuseipdb/route": "app/api/osint/abuseipdb/route.js",
+  "/api/osint/otx/route": "app/api/osint/otx/route.js",
+  "/(dashboard)/audit-compliance/page": "app/(dashboard)/audit-compliance/page.js",
+  "/(dashboard)/cyber-digital-twin/page": "app/(dashboard)/cyber-digital-twin/page.js",
+  "/(dashboard)/core-ai-brain/page": "app/(dashboard)/core-ai-brain/page.js",
+  "/(dashboard)/deception-engine/page": "app/(dashboard)/deception-engine/page.js",
+  "/(dashboard)/executive-view/page": "app/(dashboard)/executive-view/page.js",
+  "/(dashboard)/multi-agents/page": "app/(dashboard)/multi-agents/page.js",
+  "/(dashboard)/page": "app/(dashboard)/page.js",
+  "/(dashboard)/project-status/page": "app/(dashboard)/project-status/page.js",
+  "/(dashboard)/incidents-forensics/page": "app/(dashboard)/incidents-forensics/page.js",
+  "/(dashboard)/self-healing-scripts/page": "app/(dashboard)/self-healing-scripts/page.js",
+  "/(dashboard)/soc-academy/page": "app/(dashboard)/soc-academy/page.js",
+  "/(dashboard)/xdr-ueba/page": "app/(dashboard)/xdr-ueba/page.js",
+  "/(dashboard)/swarm-agents/page": "app/(dashboard)/swarm-agents/page.js",
+  "/(dashboard)/threat-intel/page": "app/(dashboard)/threat-intel/page.js"
+}

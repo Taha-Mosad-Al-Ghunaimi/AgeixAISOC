@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+.pytest_cache/
+node_modules/
+dist/
+.vite/
+venv/ 
+.next/ 
+.next/cache/ 
+.next/static/ 
+chroma.sqlite3 
+backend/data/ 
+*.sqlite3 

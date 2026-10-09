@@ -1,0 +1,244 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AgeixAISOC — Production-Grade Local Stack
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Prerequisites:
+#   - Docker Engine 24+ with Compose v2
+#   - NVIDIA Container Toolkit (nvidia-ctk) — for GPU inference
+#     (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+#   - 16 GB+ VRAM GPU (Ollama models: ~18 GB combined)
+#
+# Quick start:
+#   docker compose up -d
+#   docker compose logs -f ollama-llm    # wait for model downloads (~5-10 min first pull)
+#   docker compose logs -f ageixai-backend
+#
+# Tear down:
+#   docker compose down -v    # -v removes all volumes (DB, models, n8n data)
+#
+# Model management (post-start):
+#   docker compose exec ollama-llm ollama list
+#   docker compose exec ollama-llm ollama pull qwen2.5:14b
+# ═══════════════════════════════════════════════════════════════════════════════
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  # ── 1. PostgreSQL 15 + pgvector ──────────────────────────────────────────
+  postgres-db:
+    image: pgvector/pgvector:pg15
+    container_name: ageixai-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ageixai
+      POSTGRES_PASSWORD: ageixai
+      POSTGRES_DB: ageixai
+      # Timezone
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ageixai -d ageixai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging: *default-logging
+    networks:
+      - ageixai-net
+
+  # ── 2. Redis Pub/Sub Event Bus ──────────────────────────────────────────
+  redis-bus:
+    image: redis:7-alpine
+    container_name: ageixai-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "__healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging: *default-logging
+    networks:
+      - ageixai-net
+
+  # ── 3. Ollama LLM Server (GPU-accelerated) ──────────────────────────────
+  ollama-llm:
+    image: ollama/ollama:latest
+    container_name: ageixai-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      # Keep models loaded in memory for faster inference
+      OLLAMA_KEEP_ALIVE: "24h"
+      # Max 4 parallel requests (balanced for 16 GB VRAM)
+      OLLAMA_NUM_PARALLEL: "4"
+      # Max 2 models loaded simultaneously
+      OLLAMA_MAX_LOADED_MODELS: "2"
+      # Flash attention = faster + less VRAM
+      OLLAMA_FLASH_ATTENTION: "1"
+      TZ: UTC
+    volumes:
+      - ollama-models:/root/.ollama
+    # Auto-pull models on container start
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        echo "[ollama] Starting Ollama server..."
+        ollama serve &
+        SERVE_PID=$$!
+        echo "[ollama] Waiting for API to be ready..."
+        until ollama list &>/dev/null 2>&1; do
+          sleep 1
+        done
+        echo "[ollama] Pulling qwen2.5:14b (~9 GB) — Master Brain..."
+        ollama pull qwen2.5:14b
+        echo "[ollama] Pulling qwen2.5-coder:7b (~4.5 GB) — Coder Agent..."
+        ollama pull qwen2.5-coder:7b
+        echo "[ollama] Models ready. Holding server..."
+        wait $$SERVE_PID
+    healthcheck:
+      test: ["CMD", "bash", "-c", "ollama list &>/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 120s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+        limits:
+          memory: 32G
+    logging: *default-logging
+    networks:
+      - ageixai-net
+
+  # ── 4. n8n SOAR Workflow Automation ────────────────────────────────────
+  n8n-soar:
+    image: n8nio/n8n:latest
+    container_name: ageixai-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_PORT: 5678
+      N8N_HOST: localhost
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      N8N_METRICS: "false"
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"       # keep executions for 7 days
+      TZ: UTC
+    volumes:
+      - n8n-data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:5678/healthz", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    logging: *default-logging
+    networks:
+      - ageixai-net
+
+  # ── 5. AgeixAI Backend (FastAPI + CrewAI + LangGraph) ──────────────────
+  ageixai-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ageixai-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # ── LLM — local Ollama with GPU ────────────────────────────────────
+      LLM_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://ollama-llm:11434
+      OLLAMA_MODEL: qwen2.5:14b
+      OLLAMA_CODER_MODEL: qwen2.5-coder:7b
+      # ── Redis Event Bus ────────────────────────────────────────────────
+      REDIS_URL: redis://redis-bus:6379/0
+      # ── PostgreSQL + pgvector ──────────────────────────────────────────
+      DATABASE_URL: postgresql://ageixai:ageixai@postgres-db:5432/ageixai
+      AUDIT_DATABASE_URL: postgresql://ageixai:ageixai@postgres-db:5432/ageixai
+      VECTOR_STORE_PROVIDER: pgvector
+      PG_VECTOR_DIMENSION: "1536"
+      # ── n8n SOAR webhook ───────────────────────────────────────────────
+      N8N_WEBHOOK_URL: http://n8n-soar:5678/webhook/ageixai-soar
+      # ── OSINT ──────────────────────────────────────────────────────────
+      OTX_API_KEY: "${OTX_API_KEY:-}"
+      # ── ChromaDB fallback ──────────────────────────────────────────────
+      CHROMA_PERSIST_DIR: /data/chroma
+      # ── Server ─────────────────────────────────────────────────────────
+      HOST: 0.0.0.0
+      PORT: "8000"
+      TZ: UTC
+    volumes:
+      - chroma-data:/data/chroma
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-bus:
+        condition: service_healthy
+      ollama-llm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    logging: *default-logging
+    networks:
+      - ageixai-net
+
+# ── Named Volumes ──────────────────────────────────────────────────────────
+volumes:
+  pgdata:             # PostgreSQL persistent storage
+  redis-data:         # Redis RDB / AOF persistence
+  ollama-models:      # Ollama model blobs (~18 GB for both models)
+  chroma-data:        # ChromaDB vector store (fallback)
+  n8n-data:           # n8n workflows, credentials, settings
+
+# ── Network ────────────────────────────────────────────────────────────────
+networks:
+  ageixai-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "172.28.0.0/16"

@@ -1,0 +1,244 @@
+{
+  "id": "ageix-soar-workflow",
+  "name": "AgeixAISOC - SOAR Execution",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "execute-soar",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "ageix-soar-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.metadata.recommended_action }}",
+              "value2": "block_ip"
+            }
+          ]
+        }
+      },
+      "id": "if-block-ip",
+      "name": "IF (Block IP)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.metadata.recommended_action }}",
+              "value2": "isolate_host"
+            }
+          ]
+        }
+      },
+      "id": "if-isolate",
+      "name": "IF (Isolate Host)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.FORTIGATE_IP }}/api/v2/cmdb/firewall/address/",
+        "authentication": "genericHeader",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.FORTIGATE_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "=SOC-Block-{{ $json.body.metadata.target_ip | replace('.', '_') }}"
+            },
+            {
+              "name": "subnet",
+              "value": "={{ $json.body.metadata.target_ip }}/32"
+            },
+            {
+              "name": "type",
+              "value": "ipmask"
+            },
+            {
+              "name": "associated-group",
+              "value": "SOC-BLOCKED-IPs"
+            },
+            {
+              "name": "comment",
+              "value": "=Blocked by AgeixAISOC - Decision {{ $json.body.decision_id }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "fortigate-block",
+      "name": "FortiGate - Block IP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.FORTIGATE_IP }}/api/v2/cmdb/firewall/address/",
+        "authentication": "genericHeader",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.FORTIGATE_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "=Quarantine-{{ $json.body.metadata.target_host | replace('.', '_') }}"
+            },
+            {
+              "name": "subnet",
+              "value": "={{ $json.body.metadata.target_host }}/32"
+            },
+            {
+              "name": "type",
+              "value": "ipmask"
+            },
+            {
+              "name": "associated-group",
+              "value": "Quarantine_Hosts"
+            },
+            {
+              "name": "comment",
+              "value": "=Isolated by AgeixAISOC - Decision {{ $json.body.decision_id }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "fortigate-isolate",
+      "name": "FortiGate - Isolate Host",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', decision_id: $json.body.decision_id, action_executed: 'block_ip', fortigate_response: $json.statusCode, timestamp: new Date().toISOString(), message: 'SOAR action completed successfully' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-block",
+      "name": "Respond (Block)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', decision_id: $json.body.decision_id, action_executed: 'isolate_host', fortigate_response: $json.statusCode, timestamp: new Date().toISOString(), message: 'SOAR action completed successfully' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-isolate",
+      "name": "Respond (Isolate)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ignored', decision_id: $json.body.decision_id, action_executed: $json.body.metadata.recommended_action, timestamp: new Date().toISOString(), message: 'No SOAR action required for this action type' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-no-action",
+      "name": "Respond (No Action)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 550]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "IF (Block IP)", "type": "main", "index": 0 },
+          { "node": "IF (Isolate Host)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "IF (Block IP)": {
+      "main": [
+        [{ "node": "FortiGate - Block IP", "type": "main", "index": 0 }],
+        [{ "node": "Respond (No Action)", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF (Isolate Host)": {
+      "main": [
+        [{ "node": "FortiGate - Isolate Host", "type": "main", "index": 0 }],
+        [{ "node": "Respond (No Action)", "type": "main", "index": 0 }]
+      ]
+    },
+    "FortiGate - Block IP": {
+      "main": [
+        [{ "node": "Respond (Block)", "type": "main", "index": 0 }]
+      ]
+    },
+    "FortiGate - Isolate Host": {
+      "main": [
+        [{ "node": "Respond (Isolate)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "ageixaisoc" },
+    { "name": "soar" },
+    { "name": "fortigate" }
+  ]
+}

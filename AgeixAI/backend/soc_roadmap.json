@@ -1,0 +1,291 @@
+{
+  "version": "1.0.0",
+  "title": "SOC Academy — Junior Analyst Roadmap",
+  "domains": [
+    {
+      "id": "introduction",
+      "name": "Introduction to SOC",
+      "description": "Fundamentals of Security Operations Centers: purpose, structure, roles, and operational models.",
+      "topics": [
+        "What is a SOC? — mission, goals, and business value",
+        "SOC maturity models (Level 1–4)",
+        "SOC team roles: Tier 1 (Triage), Tier 2 (Investigator), Tier 3 (Hunter/Threat Intel)",
+        "Follow-the-sun vs 24/7 operations models",
+        "Key KPIs: MTTD, MTTR, false-positive rate, escalation accuracy",
+        "SOC tools ecosystem overview: SIEM, EDR, NDR, SOAR, TI platform",
+        "Communication protocols: shift handover, escalation paths, incident bridges"
+      ],
+      "mitre_techniques": []
+    },
+    {
+      "id": "networking",
+      "name": "Networking Fundamentals",
+      "description": "Core networking concepts every SOC analyst must know for traffic analysis and threat detection.",
+      "topics": [
+        "OSI Model — Layer 1–7, encapsulation, PDUs",
+        "TCP/IP stack: IPv4/IPv6, TCP 3-way handshake, UDP, ICMP",
+        "Common ports and protocols: 22/SSH, 80/443/HTTP(S), 445/SMB, 3389/RDP, 389/LDAP, 53/DNS",
+        "Subnetting, CIDR, and network segmentation concepts",
+        "DNS resolution flow: recursive vs authoritative, DNS query types (A, AAAA, MX, TXT, CNAME)",
+        "HTTP/HTTPS: methods, headers, status codes, cookies, TLS handshake",
+        "DHCP, ARP, NAT, and common network services",
+        "Packet analysis basics: PCAP structure, Wireshark filters, tcpdump",
+        "NetFlow/IPFIX: flow records, conversation analysis, top-talkers",
+        "VPN technologies: IPsec, SSL/TLS VPN, WireGuard — traffic fingerprinting"
+      ],
+      "mitre_techniques": ["T1071.001", "T1071.004", "T1572", "T1043", "T1090", "T1095"]
+    },
+    {
+      "id": "cyber_threats",
+      "name": "Cyber Threats & Attack Lifecycle",
+      "description": "Understanding threat actors, attack methodologies, and the Cyber Kill Chain / MITRE ATT&CK framework.",
+      "topics": [
+        "Threat actor types: APT, cybercriminal, hacktivist, insider, script kiddie",
+        "Cyber Kill Chain: Recon → Weaponization → Delivery → Exploit → Installation → C2 → Actions on Objectives",
+        "MITRE ATT&CK framework: tactics, techniques, procedures (TTPs)",
+        "Unified Kill Chain vs MITRE ATT&CK — complementary models",
+        "Common malware types: trojan, worm, ransomware, rootkit, keylogger, RAT",
+        "Attack vectors: phishing, drive-by download, SQLi, XSS, brute force, zero-day",
+        "TTPs by threat actor: APT29 (Cozy Bear), FIN7, Conti, Lazarus, LockBit",
+        "Living-off-the-land binaries (LOLBins): PowerShell, WMI, certutil, mshta, regsvr32",
+        "Supply chain attacks: SolarWinds, Kaseya, 3CX — detection patterns",
+        "Ransomware playbook: encryption, exfiltration, double-extortion, leak sites"
+      ],
+      "mitre_techniques": ["T1190", "T1566", "T1059", "T1027", "T1486", "T1490", "T1568"]
+    },
+    {
+      "id": "soc_tools",
+      "name": "SOC Tools & Platforms",
+      "description": "Hands-on knowledge of core SOC tools: SIEM, EDR, NDR, SOAR, Threat Intelligence Platforms.",
+      "topics": [
+        "SIEM fundamentals: log ingestion, normalization, correlation rules, dashboards",
+        "Wazuh: architecture, agents, decoders, rules, alerts, FIM, SCA",
+        "Elastic Stack (ELK): Elasticsearch, Logstash, Kibana, Beats",
+        "Splunk: SPL search language, data models, lookups, alerts",
+        "EDR tools: CrowdStrike Falcon, SentinelOne, Microsoft Defender for Endpoint",
+        "EDR telemetry: process creation, network connections, registry changes, file events",
+        "NDR / IDS tools: Zeek (Bro), Suricata, Snort",
+        "Zeek logs: conn.log, dns.log, http.log, ssl.log, files.log",
+        "SOAR platforms: n8n, Splunk SOAR, Palo Alto XSOAR",
+        "Threat Intelligence Platforms: MISP, AlienVault OTX, ThreatConnect, OpenCTI"
+      ],
+      "mitre_techniques": []
+    },
+    {
+      "id": "log_analysis",
+      "name": "Log Analysis & Correlation",
+      "description": "Reading, normalizing, and correlating logs across diverse data sources to detect suspicious activity.",
+      "topics": [
+        "Windows Event Logs: Security (4624, 4625, 4663, 4688, 4698, 4732, 4776, 7045)",
+        "Sysmon — Event IDs: 1 (process), 3 (network), 7 (image load), 8 (CreateRemoteThread), 11 (file create), 13 (registry)",
+        "Linux logs: /var/log/auth.log, /var/log/syslog, journalctl, auditd",
+        "Web server logs: Apache/Nginx access logs, IIS logs, 400/500 patterns",
+        "Firewall logs: FortiGate, pfSense, iptables — allow/deny/reject patterns",
+        "DNS logs: query types, NXDOMAIN spikes, DGA detection, DNS tunneling",
+        "Email logs: SPF/DKIM/DMARC failures, attachment types, URL redirects",
+        "Cloud logs: AWS CloudTrail (S3, IAM, EC2), Azure AD sign-in logs, GCP audit logs",
+        "Log correlation techniques: time-window joining, session reconstruction, entity linking",
+        "Baseline vs anomaly: establishing normal, deviation scoring, statistical thresholds"
+      ],
+      "mitre_techniques": ["T1566", "T1059", "T1110", "T1048", "T1078", "T1574"]
+    },
+    {
+      "id": "incident_detection",
+      "name": "Incident Detection & Triage",
+      "description": "Detecting, validating, categorizing, and prioritizing security incidents in real time.",
+      "topics": [
+        "Detection engineering: Sigma rules, KQL queries, Splunk searches, YARA rules",
+        "Alert triage process: receive → validate → enrich → classify → prioritize → escalate",
+        "First responder mindset: what to look for in the first 15 minutes",
+        "False-positive vs true-positive analysis: FP reduction techniques",
+        "Alert severity classification: critical/high/medium/low — based on impact and urgency",
+        "Triage checklists by alert type: phishing, malware, brute-force, data exfiltration",
+        "IOC extraction: IPs, domains, hashes, email addresses, registry keys",
+        "IOC enrichment flow: VirusTotal → AbuseIPDB → OTX → Shodan",
+        "Correlation with threat intel: mapping IOCs to known campaigns, threat actors",
+        "Case management: creating tickets, documenting evidence, timeline reconstruction"
+      ],
+      "mitre_techniques": ["T1110", "T1003", "T1021", "T1071", "T1053", "T1078", "T1136"]
+    },
+    {
+      "id": "incident_response",
+      "name": "Incident Response & Containment",
+      "description": "Structured incident response procedures: containment, eradication, recovery, and lessons learned.",
+      "topics": [
+        "NIST SP 800-61 IR lifecycle: Preparation → Detection → Containment → Eradication → Recovery → Lessons Learned",
+        "Containment strategies: host isolation, network segmentation, account disablement",
+        "Short-term containment: blocking IPs at firewall, disabling compromised accounts, killing malicious processes",
+        "Long-term containment: patching vulnerabilities, rotating credentials, rebuilding systems",
+        "Eradication: malware removal, reimaging, vulnerability remediation",
+        "Recovery: restoring from backup, verifying system integrity, monitoring for re-infection",
+        "Playbook execution: ransomware, phishing, DDoS, data breach, insider threat",
+        "Evidence preservation: disk imaging, memory capture, log preservation, chain of custody",
+        "Post-incident activities: root cause analysis, lessons learned, report generation",
+        "Legal & regulatory notification: GDPR breach notification, CISO briefing, PR communication"
+      ],
+      "mitre_techniques": ["T1486", "T1490", "T1071", "T1021", "T1562", "T1059"]
+    },
+    {
+      "id": "threat_intelligence",
+      "name": "Threat Intelligence & CTI",
+      "description": "Collecting, analyzing, and operationalizing threat intelligence for proactive defense.",
+      "topics": [
+        "Threat intelligence taxonomy: strategic, operational, tactical, technical (Diamond Model)",
+        "Intelligence lifecycle: Requirements → Collection → Processing → Analysis → Dissemination → Feedback",
+        "Indicators of Compromise (IOCs) vs Indicators of Attack (IOAs)",
+        "Structured threat intel formats: STIX 2.1, TAXII, MISP events, OpenIOC",
+        "OSINT collection: Shodan, Censys, VirusTotal, AlienVault OTX, GreyNoise",
+        "Dark web monitoring: TOR, I2P, paste sites, criminal forums, ransomware blogs",
+        "Threat actor profiling: attribution, TTP analysis, tooling signatures",
+        "Diamond Model: Adversary, Infrastructure, Capability, Victim",
+        "Operationalizing intel: creating detection rules, enriching alerts, prioritizing hunts",
+        "CTI reporting: daily threat briefs, weekly reports, campaign tracking, RFIs"
+      ],
+      "mitre_techniques": ["T1568", "T1071", "T1090", "T1048", "T1027"]
+    },
+    {
+      "id": "vulnerability_management",
+      "name": "Vulnerability Management",
+      "description": "Vulnerability identification, prioritization, remediation tracking, and risk reduction.",
+      "topics": [
+        "Vulnerability scanning: Nessus, Qualys, OpenVAS, Rapid7 — scanning methodologies",
+        "CVE/CVSS scoring: CVSS v3.1 vectors, base/temporal/environmental scores",
+        "Vulnerability prioritization: risk-based (EPSS, KEV), asset criticality, exploit maturity",
+        "Patch management lifecycle: assess → test → deploy → verify → document",
+        "Common vulnerabilities: Log4j (CVE-2021-44228), SMBGhost, EternalBlue, ProxyShell, BlueKeep",
+        "Virtual patching: WAF rules, IDS/IPS signatures, IAM policy hardening",
+        "Vulnerability reporting: remediation SLAs, exception handling, risk acceptance",
+        "Attack surface management: external asset discovery, shadow IT, cloud misconfigurations",
+        "Container security: image scanning, runtime security, Kubernetes CIS benchmarks",
+        "Cloud security posture management (CSPM): AWS Config, Azure Policy, GCP Asset Inventory"
+      ],
+      "mitre_techniques": ["T1190", "T1505", "T1068", "T1543", "T1053"]
+    },
+    {
+      "id": "malware_analysis",
+      "name": "Malware Analysis & Reverse Engineering",
+      "description": "Static and dynamic malware analysis, sandboxing, and identifying malicious behavior.",
+      "topics": [
+        "Malware classification: trojan, worm, ransomware, spyware, adware, rootkit, bootkit, RAT",
+        "Static analysis: file type detection, hashing (MD5/SHA1/SHA256), strings, PE header analysis",
+        "Packer detection: UPX, Themida, VMProtect — unpacking techniques",
+        "Dynamic analysis: sandbox execution (Cuckoo, CAPE), process monitor, API call tracing",
+        "Memory analysis: Volatility — extracting processes, DLLs, network connections, injected code",
+        "Network indicators: C2 protocols, beacon intervals, DNS TXT exfiltration, HTTP C2 patterns",
+        "YARA rules — writing signatures for family classification and IOC matching",
+        "PowerShell analysis: deobfuscation, AMSI bypass detection, encoded command decoding",
+        "Macro analysis: VBA inspection, OLE extraction, Office exploit detection",
+        "Ransomware analysis: encryption algorithm identification, file extension mapping, decryptor feasibility"
+      ],
+      "mitre_techniques": ["T1003", "T1005", "T1027", "T1055", "T1546", "T1564", "T1059"]
+    },
+    {
+      "id": "policies_compliance",
+      "name": "Policies, Compliance & Governance",
+      "description": "Regulatory frameworks, compliance requirements, security policies, and audit readiness.",
+      "topics": [
+        "Regulatory frameworks: GDPR, HIPAA, PCI DSS, SOX, ISO 27001, NIST CSF",
+        "GDPR: data subject rights, breach notification (72h), DPO, cross-border transfers (SCCs)",
+        "PCI DSS v4.0: 12 requirements, SAQ types, ASV scanning, network segmentation",
+        "ISO 27001: Annex A controls, ISMS, internal audit, certification process",
+        "NIST Cybersecurity Framework: Identify, Protect, Detect, Respond, Recover",
+        "SOC 2: Type I vs Type II, trust services criteria, auditor expectations",
+        "Security policy documentation: AUP, IAP, DRP, BCP, data classification policy",
+        "Compliance automation: continuous monitoring, evidence collection, reporting",
+        "Audit readiness: policy review, control testing, evidence gathering, remediation planning",
+        "Risk management: risk register, risk appetite, RMF, quantitative vs qualitative analysis"
+      ],
+      "mitre_techniques": []
+    },
+    {
+      "id": "forensics",
+      "name": "Digital Forensics & Chain of Custody",
+      "description": "Forensic acquisition, preservation, analysis, and courtroom-ready evidence handling.",
+      "topics": [
+        "Forensic principles: Locard's exchange principle, order of volatility (RFC 3227)",
+        "Live vs dead acquisition: methodology, tools, and when each is appropriate",
+        "Disk forensics: FTK Imager, dd, Guymager, EnCase, Sleuth Kit (Autopsy)",
+        "Memory forensics: Volatility 3 — profiles, plugins (pslist, netscan, malfind, dlllist)",
+        "Network forensics: PCAP analysis, NetWitness, Wireshark file carving",
+        "Registry forensics: SAM, SYSTEM, SOFTWARE hives — user activity, USB history, MRU",
+        "Browser forensics: Chrome/Firefox history, cache, cookies, bookmarks, downloads",
+        "Email forensics: header analysis, MSG/PST parsing, email threading",
+        "Mobile forensics: Cellebrite, Magnet AXIOM, iOS/Android acquisition",
+        "Chain of custody: documentation, hashing, tamper-evident logging, legal admissibility"
+      ],
+      "mitre_techniques": ["T1003", "T1070", "T1552", "T1560", "T1059"]
+    },
+    {
+      "id": "advanced_soc",
+      "name": "Advanced SOC: Threat Hunting & Purple Teaming",
+      "description": "Proactive threat hunting, adversary emulation, and purple team exercises to close detection gaps.",
+      "topics": [
+        "Threat hunting methodology: hypothesis-driven, IOC-driven, TTP-driven (M-Trends, Sqrrl)",
+        "Pyramid of Pain: hash → IP → domain → host artifact → tool → TTPs",
+        "Adversary emulation: CALDERA, Atomic Red Team, Stratus Red Team, MITRE ATT&CK Evaluations",
+        "Purple teaming: bridging red and blue team objectives, joint exercises, metrics",
+        "Detection gap analysis: mapping attacks to existing alerts, false-negative identification",
+        "Sigma rule writing: YAML format, logsource, detection, condition, falsepositives",
+        "KQL/Splunk advanced queries: time-series analysis, baseline deviation, lookups, subsearches",
+        "Deception technology: honeypots, honeytokens, canary files, lures, breadcrumbs",
+        "Attack path mapping: identifying privilege escalation paths, AD attack surfaces",
+        "Automation & ML in SOC: anomaly detection, UEBA, NLP for threat intel, auto-response"
+      ],
+      "mitre_techniques": ["T1562", "T1497", "T1036", "T1204", "T1547", "T1012"]
+    },
+    {
+      "id": "soft_skills",
+      "name": "SOFT SKILLS",
+      "description": "Essential soft skills for effective SOC operations: communication, collaboration, and continuous learning.",
+      "topics": [
+        "Technical writing: incident reports, executive summaries, playbook documentation",
+        "Communication: escalation calls, shift handovers, stakeholder briefings, war rooms",
+        "Time management: triage SLAs, multitasking, prioritization under pressure",
+        "Analytical thinking: root cause analysis, deductive reasoning, hypothesis generation",
+        "Team collaboration: working with red/purple teams, DevOps, IT engineering",
+        "Continuous learning: industry certifications (Security+, CySA+, GCIA, GCIH, CISSP)",
+        "Stress management: on-call rotation, burnout prevention, maintaining analytical accuracy",
+        "Mentorship: junior analyst development, knowledge sharing, internal training programs"
+      ],
+      "mitre_techniques": []
+    }
+  ],
+  "mitre_technique_domain_map": {
+    "T1190": ["cyber_threats", "vulnerability_management"],
+    "T1566": ["cyber_threats", "log_analysis"],
+    "T1059": ["cyber_threats", "incident_response", "log_analysis", "forensics", "malware_analysis"],
+    "T1003": ["incident_detection", "malware_analysis", "forensics"],
+    "T1021": ["incident_detection", "incident_response"],
+    "T1071": ["networking", "incident_detection", "threat_intelligence", "incident_response"],
+    "T1110": ["incident_detection", "log_analysis"],
+    "T1486": ["cyber_threats", "incident_response"],
+    "T1490": ["cyber_threats", "incident_response"],
+    "T1078": ["log_analysis", "incident_detection"],
+    "T1136": ["incident_detection"],
+    "T1027": ["cyber_threats", "threat_intelligence", "malware_analysis"],
+    "T1053": ["incident_detection", "vulnerability_management"],
+    "T1562": ["advanced_soc", "incident_response"],
+    "T1048": ["log_analysis", "threat_intelligence"],
+    "T1574": ["log_analysis"],
+    "T1568": ["cyber_threats", "threat_intelligence"],
+    "T1090": ["networking", "threat_intelligence"],
+    "T1095": ["networking"],
+    "T1572": ["networking"],
+    "T1043": ["networking"],
+    "T1505": ["vulnerability_management"],
+    "T1068": ["vulnerability_management"],
+    "T1543": ["vulnerability_management"],
+    "T1005": ["malware_analysis"],
+    "T1055": ["malware_analysis"],
+    "T1546": ["malware_analysis"],
+    "T1564": ["malware_analysis"],
+    "T1070": ["forensics"],
+    "T1552": ["forensics"],
+    "T1560": ["forensics"],
+    "T1497": ["advanced_soc"],
+    "T1036": ["advanced_soc"],
+    "T1204": ["advanced_soc"],
+    "T1547": ["advanced_soc"],
+    "T1012": ["advanced_soc"]
+  }
+}

@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: #0a1428; }
+::-webkit-scrollbar-thumb  { background: rgba(0,229,255,.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,229,255,.5); }
+
+/* ── Keyframe animations ─────────────────────────────────────────────────── */
+@keyframes pulse-cyan {
+  0%,100% { box-shadow: 0 0 6px rgba(0,229,255,.5), 0 0 12px rgba(0,229,255,.25); }
+  50%     { box-shadow: 0 0 18px rgba(0,229,255,.85), 0 0 36px rgba(0,229,255,.4); }
+}
+@keyframes pulse-green {
+  0%,100% { box-shadow: 0 0 6px rgba(0,255,136,.5), 0 0 12px rgba(0,255,136,.25); }
+  50%     { box-shadow: 0 0 18px rgba(0,255,136,.85), 0 0 36px rgba(0,255,136,.4); }
+}
+@keyframes pulse-red {
+  0%,100% { box-shadow: 0 0 6px rgba(255,68,102,.5), 0 0 12px rgba(255,68,102,.25); }
+  50%     { box-shadow: 0 0 18px rgba(255,68,102,.85), 0 0 36px rgba(255,68,102,.4); }
+}
+@keyframes pulse-amber {
+  0%,100% { box-shadow: 0 0 6px rgba(255,215,0,.5), 0 0 12px rgba(255,215,0,.25); }
+  50%     { box-shadow: 0 0 18px rgba(255,215,0,.85), 0 0 36px rgba(255,215,0,.4); }
+}
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideInTop {
+  from { transform: translateY(-20px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0; }
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+.text-glow-cyan  { text-shadow: 0 0 10px rgba(0,229,255,.8), 0 0 20px rgba(0,229,255,.4); }
+.text-glow-red   { text-shadow: 0 0 10px rgba(255,68,102,.8), 0 0 20px rgba(255,68,102,.4); }
+.text-glow-green { text-shadow: 0 0 10px rgba(0,255,136,.8), 0 0 20px rgba(0,255,136,.4); }
+.slide-in-right { animation: slideInRight .3s ease-out; }
+.slide-in-top   { animation: slideInTop   .35s ease-out; }
+.fade-in-up     { animation: fadeInUp     .4s ease-out; }
+.slide-down     { animation: slideDown    .3s ease-out; }
+.status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+.dot-online  { background:#00ff88; animation: pulse-green 1.5s ease-in-out infinite; }
+.dot-offline { background:#ff4466; animation: pulse-red   1.5s ease-in-out infinite; }
+.dot-warning { background:#ffd700; animation: pulse-amber 1.5s ease-in-out infinite; }
+.progress-bar { height:4px; border-radius:2px; overflow:hidden; background:rgba(0,229,255,.1); }
+.progress-fill { height:100%; border-radius:2px; transition:width .5s ease; }
+.ticker-wrap { overflow:hidden; white-space:nowrap; }
+.ticker-tape { display:inline-block; animation:ticker 30s linear infinite; }
